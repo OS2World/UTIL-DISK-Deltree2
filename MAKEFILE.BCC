@@ -1,0 +1,59 @@
+#=============================================================
+#
+#	Makefile.BCC - Makefile for DELTREE[2]
+#	   Requires LIB environment variable to point to BCC libraries
+#
+#=============================================================
+
+.AUTODEPEND
+
+LFLAGS= /L$(LIB) /x
+
+!if $d(__OS2__)
+# OS/2 version
+MODEL= 2
+LIBS= c2.lib os2.lib
+LFLAGS= $(LFLAGS) /S:4000 /Toe /ap
+!if $d(DBG)
+# OS/2 version with debugging
+TARGET= deltre2d.exe
+CFLAGS= -Od -y -v -N -DDBG
+LFLAGS= $(LFLAGS) /v
+!else
+# OS/2 version no debugging
+TARGET= deltree2.exe
+CFLAGS= -O2 -N
+!endif
+!else
+# MSDOS version
+LIBS= cs maths emu
+!if $d(DBG)
+# MSDOS version with debugging
+MODEL= s
+TARGET= deltreed.exe
+CFLAGS= -m$(MODEL) -Od -y -v -N -DSTKLEN=4096U -DDBG
+!else
+# MSDOS version no debugging (tiny model)
+MODEL= t
+TARGET= deltree.com
+CFLAGS= -m$(MODEL) -O2 -N
+LFLAGS= $(LFLAGS) /t
+!endif
+!endif
+
+# Now build compiler and linker invocations
+CC= bcc -c $(CFLAGS)
+LINK= tlink $(LFLAGS)
+
+# Guts of the makefile!
+$(TARGET): deltree.c
+  $(CC) deltree.c
+  $(LINK) @&&|
+$(LIB)\c0$(MODEL) deltree
+$&,$&
+$(LIBS)
+
+|
+
+  del  deltree.obj
+
